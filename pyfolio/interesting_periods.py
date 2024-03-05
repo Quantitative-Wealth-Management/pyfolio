@@ -76,3 +76,5 @@ PERIODS['Recovery'] = (pd.Timestamp('20090401'),
 
 PERIODS['New Normal'] = (pd.Timestamp('20130101'),
                          pd.Timestamp('today'))
+
+PERIODS['Covid19'] = (pd.Timestamp('20191231'), pd.Timestamp('20220131'))

@@ -4,7 +4,7 @@ import empyrical as ep
 import numpy as np
 import pandas as pd
 
-from . import pos
+import Pyfolio.pos
 
 
 def daily_txns_with_bar_data(transactions, market_data):

@@ -23,15 +23,16 @@ import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from . import _seaborn as sns
-from . import capacity
-from . import perf_attrib
-from . import plotting
-from . import pos
-from . import round_trips
-from . import timeseries
-from . import txn
-from . import utils
+import Pyfolio._seaborn as sns
+import Pyfolio.capacity as capacity
+import Pyfolio.perf_attrib as perf_attrib
+import Pyfolio.plotting as plotting
+import Pyfolio.plotting
+import Pyfolio.pos as pos
+import Pyfolio.round_trips as round_trips
+import Pyfolio.timeseries as timeseries
+import Pyfolio.txn as txn 
+import Pyfolio.utils as utils
 
 FACTOR_PARTITIONS = {
     'style': ['momentum', 'size', 'value', 'reversal_short_term',
@@ -227,7 +228,7 @@ def create_full_tear_sheet(returns,
                                           factor_partitions=factor_partitions)
 
 
-@plotting.customize
+@Pyfolio.plotting.customize
 def create_simple_tear_sheet(returns,
                              positions=None,
                              transactions=None,
@@ -405,7 +406,7 @@ def create_simple_tear_sheet(returns,
         plt.setp(ax.get_xticklabels(), visible=True)
 
 
-@plotting.customize
+@Pyfolio.plotting.customize
 def create_returns_tear_sheet(returns, positions=None,
                               transactions=None,
                               live_start_date=None,
@@ -595,7 +596,7 @@ def create_returns_tear_sheet(returns, positions=None,
         return fig
 
 
-@plotting.customize
+@Pyfolio.plotting.customize
 def create_position_tear_sheet(returns, positions,
                                show_and_plot_top_pos=2, hide_positions=False,
                                sector_mappings=None, transactions=None,
@@ -690,7 +691,7 @@ def create_position_tear_sheet(returns, positions,
         return fig
 
 
-@plotting.customize
+@Pyfolio.plotting.customize
 def create_txn_tear_sheet(returns, positions, transactions,
                           turnover_denom='AGB', unadjusted_returns=None,
                           estimate_intraday='infer', return_fig=False):
@@ -776,7 +777,7 @@ def create_txn_tear_sheet(returns, positions, transactions,
         return fig
 
 
-@plotting.customize
+@Pyfolio.plotting.customize
 def create_round_trip_tear_sheet(returns, positions, transactions,
                                  sector_mappings=None,
                                  estimate_intraday='infer', return_fig=False):
@@ -866,7 +867,7 @@ def create_round_trip_tear_sheet(returns, positions, transactions,
         return fig
 
 
-@plotting.customize
+@Pyfolio.plotting.customize
 def create_interesting_times_tear_sheet(returns, benchmark_rets=None,
                                         periods=None, legend_loc='best',
                                         return_fig=False):
@@ -950,12 +951,12 @@ def create_interesting_times_tear_sheet(returns, benchmark_rets=None,
         return fig
 
 
-@plotting.customize
+@Pyfolio.plotting.customize
 def create_capacity_tear_sheet(returns, positions, transactions,
                                market_data,
                                liquidation_daily_vol_limit=0.2,
                                trade_daily_vol_limit=0.05,
-                               last_n_days=utils.APPROX_BDAYS_PER_MONTH * 6,
+                               last_n_days=Pyfolio.utils.APPROX_BDAYS_PER_MONTH * 6,
                                days_to_liquidate_limit=1,
                                estimate_intraday='infer',
                                return_fig=False):
@@ -1062,7 +1063,7 @@ def create_capacity_tear_sheet(returns, positions, transactions,
         return fig
 
 
-@plotting.customize
+@Pyfolio.plotting.customize
 def create_perf_attrib_tear_sheet(returns,
                                   positions,
                                   factor_returns,

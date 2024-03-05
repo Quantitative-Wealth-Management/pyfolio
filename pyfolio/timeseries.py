@@ -11,7 +11,7 @@
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
-# limitations under the License.
+# limitations under the License.x
 from __future__ import division
 
 from collections import OrderedDict
@@ -24,11 +24,11 @@ import scipy as sp
 import scipy.stats as stats
 from sklearn import linear_model
 
-from .deprecate import deprecated
-from .interesting_periods import PERIODS
-from .txn import get_turnover
-from .utils import APPROX_BDAYS_PER_MONTH, APPROX_BDAYS_PER_YEAR
-from .utils import DAILY
+from Pyfolio.deprecate import deprecated
+from Pyfolio.interesting_periods import PERIODS
+from Pyfolio.txn import get_turnover
+from Pyfolio.utils import APPROX_BDAYS_PER_MONTH, APPROX_BDAYS_PER_YEAR
+from Pyfolio.utils import DAILY
 
 DEPRECATION_WARNING = ("Risk functions in pyfolio.timeseries are deprecated "
                        "and will be removed in a future release. Please "
@@ -1206,14 +1206,13 @@ def forecast_cone_bootstrap(is_returns, num_days, cone_std=(1., 1.5, 2.),
 
 def extract_interesting_date_ranges(returns, periods=None):
     """
-    Extracts returns based on interesting events. See
-    gen_date_range_interesting.
+    Extracts returns based on interesting events.
 
     Parameters
     ----------
     returns : pd.Series
         Daily returns of the strategy, noncumulative.
-         - See full explanation in tears.create_full_tear_sheet.
+        See full explanation in tears.create_full_tear_sheet.
 
     Returns
     -------
@@ -1222,16 +1221,28 @@ def extract_interesting_date_ranges(returns, periods=None):
     """
     if periods is None:
         periods = PERIODS
-    returns_dupe = returns.copy()
-    returns_dupe.index = returns_dupe.index.map(pd.Timestamp)
+    
+    # Ensure returns index is tz-naive
+    returns.index = returns.index.tz_localize(None)
+
     ranges = OrderedDict()
     for name, (start, end) in periods.items():
         try:
-            period = returns_dupe.loc[start:end]
+            # Convert start and end to Timestamp objects
+            start = pd.Timestamp(start)
+            end = pd.Timestamp(end)
+            
+            # Ensure start and end are tz-naive
+            start = start.tz_localize(None)
+            end = end.tz_localize(None)
+            
+            period = returns.loc[start:end]
+            #print(f"Name: {name}, Period Length: {len(period)}")
             if len(period) == 0:
                 continue
             ranges[name] = period
-        except BaseException:
+        except Exception as e:
+            #print(f"Error processing period {name}: {e}")
             continue
 
     return ranges

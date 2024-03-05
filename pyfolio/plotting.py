@@ -30,14 +30,13 @@ from matplotlib import figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.ticker import FuncFormatter
 
-from . import _seaborn as sns
-from . import capacity
-from . import pos
-from . import timeseries
-from . import txn
-from . import utils
-from .utils import (APPROX_BDAYS_PER_MONTH,
-                    MM_DISPLAY_UNIT)
+import Pyfolio._seaborn as sns
+import Pyfolio.capacity as capacity
+import Pyfolio.pos as pos
+import Pyfolio.timeseries as timeseries
+import Pyfolio.txn as txn
+import Pyfolio.utils as utils
+from Pyfolio.utils import (APPROX_BDAYS_PER_MONTH,MM_DISPLAY_UNIT)
 
 
 def customize(func):
@@ -315,7 +314,7 @@ def plot_holdings(returns, positions, legend_loc='best', ax=None, **kwargs):
 
     positions = positions.copy().drop('cash', axis='columns')
     df_holdings = positions.replace(0, np.nan).count(axis=1)
-    df_holdings_by_month = df_holdings.resample('1M').mean()
+    df_holdings_by_month = df_holdings.resample('1ME').mean()
     df_holdings.plot(color='steelblue', alpha=0.6, lw=0.5, ax=ax, **kwargs)
     df_holdings_by_month.plot(
         color='orangered',
@@ -644,11 +643,17 @@ def show_perf_stats(returns, factor_returns=None, positions=None,
                                             APPROX_BDAYS_PER_MONTH)
         perf_stats = pd.DataFrame(perf_stats_all, columns=['Backtest'])
 
-    for column in perf_stats.columns:
-        for stat, value in perf_stats[column].iteritems():
-            if stat in STAT_FUNCS_PCT:
-                perf_stats.loc[stat, column] = str(np.round(value * 100,
-                                                            3)) + '%'
+    def format_as_percentage(value):
+        if isinstance(value, (int, float)):
+            return np.round(value * 100, 3)
+        else:
+            return value
+    # Apply formatting function to all elements in the DataFrame
+    perf_stats_formatted = perf_stats.map(lambda x: format_as_percentage(x) if x in STAT_FUNCS_PCT else x)
+    # Convert columns with percentage values to strings
+    percentage_columns = perf_stats_formatted.columns.intersection(STAT_FUNCS_PCT)
+    perf_stats_formatted[percentage_columns] = perf_stats_formatted[percentage_columns].astype(str) + '%'
+            
     if header_rows is None:
         header_rows = date_rows
     else:
@@ -1063,28 +1068,6 @@ def plot_gross_leverage(returns, positions, ax=None, **kwargs):
 
 
 def plot_exposures(returns, positions, ax=None, **kwargs):
-    """
-    Plots a cake chart of the long and short exposure.
-
-    Parameters
-    ----------
-    returns : pd.Series
-        Daily returns of the strategy, noncumulative.
-         - See full explanation in tears.create_full_tear_sheet.
-    positions_alloc : pd.DataFrame
-        Portfolio allocation of positions. See
-        pos.get_percent_alloc.
-    ax : matplotlib.Axes, optional
-        Axes upon which to plot.
-    **kwargs, optional
-        Passed to plotting function.
-
-    Returns
-    -------
-    ax : matplotlib.Axes
-        The axes that were plotted on.
-    """
-
     if ax is None:
         ax = plt.gca()
 
@@ -1101,8 +1084,8 @@ def plot_exposures(returns, positions, ax=None, **kwargs):
                     0,
                     s_exp.values,
                     label='Short', color='red', alpha=0.5)
-    ax.plot(net_exp.index, net_exp.values,
-            label='Net', color='black', linestyle='dotted')
+    ax.plot(np.array(net_exp.index), np.array(net_exp.values),
+            label='Net', color='black', linestyle='dotted')  # Convert index and values to numpy array
 
     ax.set_xlim((returns.index[0], returns.index[-1]))
     ax.set_title("Exposure")
@@ -1368,7 +1351,7 @@ def plot_turnover(returns, transactions, positions, turnover_denom='AGB',
     ax.yaxis.set_major_formatter(FuncFormatter(y_axis_formatter))
 
     df_turnover = txn.get_turnover(positions, transactions, turnover_denom)
-    df_turnover_by_month = df_turnover.resample("M").mean()
+    df_turnover_by_month = df_turnover.resample("1ME").mean()
     df_turnover.plot(color='steelblue', alpha=1.0, lw=0.5, ax=ax, **kwargs)
     df_turnover_by_month.plot(
         color='orangered',
@@ -1527,32 +1510,37 @@ def plot_daily_turnover_hist(transactions, positions, turnover_denom='AGB',
 
     Parameters
     ----------
-    transactions : pd.DataFrame
-        Prices and amounts of executed trades. One row per trade.
-         - See full explanation in tears.create_full_tear_sheet.
-    positions : pd.DataFrame
-        Daily net position values.
-         - See full explanation in tears.create_full_tear_sheet.
-    turnover_denom : str, optional
-        Either AGB or portfolio_value, default AGB.
-        - See full explanation in txn.get_turnover.
-    ax : matplotlib.Axes, optional
-        Axes upon which to plot.
-    **kwargs, optional
-        Passed to seaborn plotting function.
+    turnover : pandas.DataFrame or pandas.Series
+        DataFrame or Series containing daily turnover rates.
+    ax : matplotlib.axes.Axes, optional
+        The axes to plot on. If not provided, the current axes will be used.
+    **kwargs : dict, optional
+        Additional keyword arguments to pass to the matplotlib histogram function.
 
     Returns
     -------
-    ax : matplotlib.Axes
+    ax : matplotlib.axes.Axes
         The axes that were plotted on.
     """
-
+    turnover = txn.get_turnover(positions, transactions)
+    # Create a new figure and axis if ax is not provided
     if ax is None:
-        ax = plt.gca()
-    turnover = txn.get_turnover(positions, transactions, turnover_denom)
-    sns.distplot(turnover, ax=ax, **kwargs)
+        fig, ax = plt.subplots()
+    
+    # Convert DataFrame to Series if turnover is a DataFrame
+    if isinstance(turnover, pd.DataFrame):
+        turnover = turnover.squeeze()
+    
+    # Filter out non-finite values
+    valid_turnover = turnover[~turnover.isna() & ~turnover.isin([np.inf, -np.inf])]
+    
+    # Plot histogram using matplotlib
+    print(valid_turnover)
+    ax.hist(valid_turnover, **kwargs)
     ax.set_title('Distribution of daily turnover rates')
     ax.set_xlabel('Turnover rate')
+    ax.set_ylabel('Frequency')
+    
     return ax
 
 

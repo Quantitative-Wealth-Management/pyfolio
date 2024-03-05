@@ -20,9 +20,9 @@ import empyrical as ep
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from .pos import get_percent_alloc
-from .txn import get_turnover
-from .utils import print_table, configure_legend
+from Pyfolio.pos import get_percent_alloc
+from Pyfolio.txn import get_turnover
+from Pyfolio.utils import print_table, configure_legend
 
 PERF_ATTRIB_TURNOVER_THRESHOLD = 0.25
 

@@ -25,8 +25,8 @@ from IPython.display import display, HTML
 
 import empyrical.utils
 
-from . import pos
-from . import txn
+import Pyfolio.pos
+import Pyfolio.txn
 
 APPROX_BDAYS_PER_MONTH = 21
 APPROX_BDAYS_PER_YEAR = 252
@@ -152,7 +152,7 @@ def extract_rets_pos_txn_from_zipline(backtest):
         backtest.index = backtest.index.tz_localize('UTC')
     returns = backtest.returns
     raw_positions = []
-    for dt, pos_row in backtest.positions.iteritems():
+    for dt, pos_row in backtest.positions.items():
         df = pd.DataFrame(pos_row)
         df.index = [dt] * len(df)
         raw_positions.append(df)

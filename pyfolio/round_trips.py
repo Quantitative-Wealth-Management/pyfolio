@@ -20,7 +20,7 @@ from collections import deque, OrderedDict
 import pandas as pd
 import numpy as np
 
-from .utils import print_table, format_asset
+from Pyfolio.utils import print_table, format_asset
 
 PNL_STATS = OrderedDict(
     [('Total profit', lambda x: x.sum()),
@@ -301,7 +301,7 @@ def add_closing_transactions(positions, transactions):
     # they don't conflict with other round_trips executed at that time.
     end_dt = open_pos.name + pd.Timedelta(seconds=1)
 
-    for sym, ending_val in open_pos.iteritems():
+    for sym, ending_val in open_pos.items():
         txn_sym = transactions[transactions.symbol == sym]
 
         ending_amount = txn_sym.amount.sum()
@@ -341,9 +341,11 @@ def apply_sector_mappings_to_round_trips(round_trips, sector_mappings):
     """
 
     sector_round_trips = round_trips.copy()
+
+    
     sector_round_trips.symbol = sector_round_trips.symbol.apply(
         lambda x: sector_mappings.get(x, 'No Sector Mapping'))
-    sector_round_trips = sector_round_trips.dropna(axis=0)
+    sector_trades = sector_round_trips #sector_round_trips.dropna(axis=0)
 
     return sector_round_trips
 
